@@ -69,6 +69,7 @@
 
 ### Ресурси
 - [seed.py](./seed.py)
+- [task_management_db.sql](./task_management_db.sql)
 
 ## Завдання 2
 Розробіть `Python` скрипт, який використовує бібліотеку `PyMongo` для реалізації основних `CRUD` (`Create`, `Read`, `Update`, `Delete`) операцій у `MongoDB`.
