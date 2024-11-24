@@ -2,15 +2,8 @@ from DatabaseManager import DatabaseManager
 from DatabaseManager import DatabaseType
 from TaskManager import TaskManager
 
-DB_PARAMS = {
-    "user": "postgres",
-    "password": "mysecretpassword",
-    "host": "localhost",
-    "port": "5432",
-    "dbname": "task_management",
-}
 
-def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
+def demonstrate_all_functions(db_params: dict) -> None:
     """
     Function to demonstrate all TaskManager functionality
     params:
@@ -123,10 +116,23 @@ def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
         if "tm" in locals():
             del tm
 
+
 if __name__ == "__main__":
-    if DatabaseManager.initialize_database(DatabaseType.POSTGRESQL, DB_PARAMS, "task_management_backup.sql"):
+
+    DB_PARAMS = {
+        "user": "postgres",
+        "password": "mysecretpassword",
+        "host": "localhost",
+        "port": "5432",
+        "dbname": "task_management",
+    }
+    SCRIPT_PATH = "task_management_backup.sql"
+
+    if DatabaseManager.initialize_database(
+        DatabaseType.POSTGRESQL, DB_PARAMS, SCRIPT_PATH
+    ):
         print("Database initialization complete.")
-        demonstrate_all_functions()
+        demonstrate_all_functions(DB_PARAMS)
         # Optionally stop the container
         response = (
             input("Do you want to stop the container? (yes/no): ").strip().lower()
@@ -140,4 +146,3 @@ if __name__ == "__main__":
                 DatabaseType.POSTGRESQL, DB_PARAMS
             )
             initializer.stop_container(remove)
-

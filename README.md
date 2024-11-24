@@ -7,6 +7,7 @@
 3. Активуємо (відповідно до своєї ОС): `source .env/bin/activate`
 4. Інсталюємо залежності: `pip install -r requirements.txt`
 5. По завершенню роботи деактивовуємо: `deactivate`
+6. Переконатися, що в системі встановлено `docker` ([встановити](https://docs.docker.com/engine/install/) за потреби).
 
 
 ## Завдання 1
@@ -66,11 +67,14 @@
 6. Виконано всі необхідні запити в базі даних системи управління завданнями.
 
 ### Запуск та перевірка
+Після запуску `seed.py` перевіряє чи є встановлений `docker-container` з образом `PostgreSQL` якщо немає, то контейнер завантажується і запускаєтья. Далі перевіраємо чи є встановлена база з відповідною назвою, якщо так, то пропонуємо або видалити стару і створити нову з бекапу, або використовувати існуючу.
+Якщо ініціалізація бази відбулась успішно, виконується демонстрація роботи із записами в таблицях.
+Після завершення демонстрації, пропонуємо зупинити контейнер та видалати його.
 
 ### Ресурси
 - [seed.py](./seed.py)
 - [TaskManager.py](./TaskManager.py)
-- [DatabaseInitializer.py](./DatabaseInitializer.py)
+- [DatabaseManager.py](./DatabaseManager.py)
 - [task_management_backup.sql](./task_management_backup.sql)
 
 ## Завдання 2
@@ -109,12 +113,18 @@
 4. Функції чітко коментовані та добре структуровані.
 
 ### Запуск та перевірка
+Після запуску `main.py` перевіряє чи є встановлений `docker-container` з образом `MongoDB` якщо немає, то контейнер завантажується і запускаєтья. Далі перевіраємо чи є встановлена база з відповідною назвою, якщо так, то пропонуємо або видалити стару і створити нову з бекапу, або використовувати існуючу.
+Якщо ініціалізація бази відбулась успішно, виконується демонстрація роботи.
+Після завершення демонстрації, пропонуємо зупинити контейнер та видалати його.
 
 ### Ресурси
 - [main.py](./main.py)
+- [CatManager.py](./CatManager.py)
+- [DatabaseManager.py](./DatabaseManager.py)
+- [cats_db.json](./cats_db.json)
 
 ## Додатково
 - [Домашнє завдання до модуля "Вступ до вивчення систем управління базами даних"](https://www.edu.goit.global/uk/learn/25315460/19336208/21190537/homework)
 - [https://github.com/nickolas-z/goit-cs-hw-03](https://github.com/nickolas-z/goit-cs-hw-03)
-- [goit-cs-hw-02-main.zip]()
+- [goit-cs-hw-02-main.zip](https://s3.eu-north-1.amazonaws.com/lms.goit.files/49370ccc-7a66-4b66-9d14-14d4a6948d7e%D0%94%D0%973_%D0%97%D1%83%D0%B1%D1%87%D0%B8%D0%BA%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B9%D0%BE%D0%B2%D0%B8%D1%87.zip)
 - [Computer-Systems-and-Their-Fundamentals](https://github.com/nickolas-z/Computer-Systems-and-Their-Fundamentals)
