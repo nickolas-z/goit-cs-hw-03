@@ -1,104 +1,69 @@
 from pymongo import MongoClient
-from bson.objectid import ObjectId
-import pymongo.errors
 from DatabaseManager import DatabaseManager, DatabaseType
-
-# Ініціалізація бази даних
-DB_PARAMS = {"host": "localhost", "port": "27017", "dbname": "cats_db"}
-SCRIPT_PATH = "cats_script.js"  # Це шлях до скрипта, що містить необхідні ініціалізаційні команди для бази даних
-
-DatabaseManager.initialize_database(DatabaseType.MONGODB, DB_PARAMS, SCRIPT_PATH)
+from CatManager import CatManager
 
 
-# Додати запис у колекцію
-def create_cat(name, age, features):
-    try:
-        cat = {"name": name, "age": age, "features": features}
-        cats_collection.insert_one(cat)
-        print(f"Кіт з іменем '{name}' успішно доданий.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при додаванні кота: {e}")
+def demonstrate_all_functions(db_params):
+    """Demonstrate all functions"""
+    client = MongoClient(f"mongodb://{db_params['host']}:{db_params['port']}/")
+    db = client[db_params["dbname"]]
+    cats_collection = db["test_collection"]
+    cat_manager = CatManager(cats_collection)
+
+    print("Initial state of the collection:")
+    cat_manager.read_all_cats()
+
+    print("\n1. Creating a new cat:")
+    cat_manager.create_cat("barsik", 3, ["ходить в капці", "дає себе гладити", "рудий"])
+    cat_manager.read_all_cats()
+
+    print("\n2. Reading cat by name:")
+    cat_manager.read_cat_by_name("barsik")
+
+    print("\n3. Updating age of cat:")
+    cat_manager.update_cat_age("barsik", 4)
+    cat_manager.read_all_cats()
+
+    print("\n4. Adding feature to cat:")
+    cat_manager.add_feature_to_cat("barsik", "ненажера")
+    cat_manager.read_all_cats()
+
+    print("\n5. Deleting cat by name:")
+    cat_manager.delete_cat_by_name("barsik")
+    cat_manager.read_all_cats()
+
+    print("\n6. Deleting all cats:")
+    cat_manager.delete_all_cats()
+    cat_manager.read_all_cats()
+
+    client.close()
 
 
-# Виведення всіх записів із колекції
-def read_all_cats():
-    try:
-        cats = cats_collection.find()
-        for cat in cats:
-            print(cat)
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при читанні записів: {e}")
-
-
-# Виведення інформації про кота за ім'ям
-def read_cat_by_name(name):
-    try:
-        cat = cats_collection.find_one({"name": name})
-        if cat:
-            print(cat)
-        else:
-            print(f"Кіт з іменем '{name}' не знайдений.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при читанні запису: {e}")
-
-
-# Оновлення віку кота за ім'ям
-def update_cat_age(name, new_age):
-    try:
-        result = cats_collection.update_one({"name": name}, {"$set": {"age": new_age}})
-        if result.matched_count > 0:
-            print(f"Вік кота з іменем '{name}' успішно оновлено.")
-        else:
-            print(f"Кіт з іменем '{name}' не знайдений.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при оновленні запису: {e}")
-
-
-# Додавання нової характеристики до списку features за ім'ям
-def add_feature_to_cat(name, feature):
-    try:
-        result = cats_collection.update_one(
-            {"name": name}, {"$addToSet": {"features": feature}}
-        )
-        if result.matched_count > 0:
-            print(f"Характеристика '{feature}' успішно додана коту з іменем '{name}'.")
-        else:
-            print(f"Кіт з іменем '{name}' не знайдений.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при оновленні запису: {e}")
-
-
-# Видалення запису за ім'ям
-def delete_cat_by_name(name):
-    try:
-        result = cats_collection.delete_one({"name": name})
-        if result.deleted_count > 0:
-            print(f"Кіт з іменем '{name}' успішно видалений.")
-        else:
-            print(f"Кіт з іменем '{name}' не знайдений.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при видаленні запису: {e}")
-
-
-# Видалення всіх записів із колекції
-def delete_all_cats():
-    try:
-        result = cats_collection.delete_many({})
-        print(f"Успішно видалено {result.deleted_count} записів із колекції.")
-    except pymongo.errors.PyMongoError as e:
-        print(f"Помилка при видаленні записів: {e}")
-
-
-# Основний блок для тестування функцій, викликайте тут необхідні методи
 def main():
-    create_cat("barsik", 3, ["ходить в капці", "дає себе гладити", "рудий"])
-    read_all_cats()
-    read_cat_by_name("barsik")
-    update_cat_age("barsik", 4)
-    add_feature_to_cat("barsik", "любить їсти")
-    delete_cat_by_name("barsik")
-    delete_all_cats()
+    """Main block for testing functions, demonstrating CRUD operations"""
+    demonstrate_all_functions()
 
 
 if __name__ == "__main__":
-    main()
+
+    DB_PARAMS = {"host": "localhost", "port": "27017", "dbname": "cats_db"}
+    SCRIPT_PATH = "cats_db.json"
+
+    if DatabaseManager.initialize_database(
+        DatabaseType.MONGODB, DB_PARAMS, SCRIPT_PATH
+    ):
+        print("Database initialization complete.")
+        demonstrate_all_functions(DB_PARAMS)
+        # Optionally stop the container
+        response = (
+            input("Do you want to stop the container? (yes/no): ").strip().lower()
+        )
+        if response == "yes":
+            remove = (
+                input("Do you want to remove the container? (yes/no): ").strip().lower()
+                == "yes"
+            )
+            initializer = DatabaseManager.get_initializer(
+                DatabaseType.POSTGRESQL, DB_PARAMS
+            )
+            initializer.stop_container(remove)

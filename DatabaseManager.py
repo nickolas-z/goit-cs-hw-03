@@ -2,9 +2,11 @@ from abc import ABC, abstractmethod
 import time
 import docker
 import psycopg2
+import json
 from pymongo import MongoClient
+from bson import ObjectId
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 from enum import Enum
 
 
@@ -40,7 +42,7 @@ class DatabaseInitializerInterface(ABC):
 
 
 class PostgresDatabaseInitializer(DatabaseInitializerInterface):
-    def __init__(self, db_params: Dict[str, Any]):
+    def __init__(self, db_params: Dict[str, Any]) -> None:
         self.initial_params = {
             "user": db_params.get("user", "postgres"),
             "password": db_params.get("password", "mysecretpassword"),
@@ -60,18 +62,14 @@ class PostgresDatabaseInitializer(DatabaseInitializerInterface):
         try:
             container = client.containers.get(self.container_name)
             if container.status != "running":
-                print(
-                    "PostgreSQL container exists but is not running. Starting container..."
-                )
+                print("PostgreSQL container exists but is not running. Starting container...")
                 container.start()
             else:
-                print("PostgreSQL container is already running.")
+                # print("PostgreSQL container is already running.")
                 container.reload()
                 return container.status == "running"
         except docker.errors.NotFound:
-            print(
-                "PostgreSQL container not found. Creating and starting a new container..."
-            )
+            print("PostgreSQL container not found. Creating and starting a new container...")
             container = client.containers.run(
                 "postgres:latest",
                 detach=True,
@@ -121,9 +119,7 @@ class PostgresDatabaseInitializer(DatabaseInitializerInterface):
             cursor = conn.cursor()
 
             cursor.execute(f"DROP DATABASE IF EXISTS {self.db_params['dbname']}")
-            print(
-                f"PostgreSQL database '{self.db_params['dbname']}' dropped successfully."
-            )
+            print(f"PostgreSQL database '{self.db_params['dbname']}' dropped successfully.")
 
             cursor.close()
             conn.close()
@@ -140,9 +136,7 @@ class PostgresDatabaseInitializer(DatabaseInitializerInterface):
             cursor = conn.cursor()
 
             cursor.execute(f"CREATE DATABASE {self.db_params['dbname']}")
-            print(
-                f"PostgreSQL database '{self.db_params['dbname']}' created successfully."
-            )
+            print(f"PostgreSQL database '{self.db_params['dbname']}' created successfully.")
 
             cursor.close()
             conn.close()
@@ -150,6 +144,10 @@ class PostgresDatabaseInitializer(DatabaseInitializerInterface):
             print(f"An error occurred while creating the PostgreSQL database: {e}")
 
     def execute_script(self, script_path: str) -> None:
+        if not script_path:
+            print("No script path provided. Skipping script execution.")
+            return
+
         try:
             conn = psycopg2.connect(**self.db_params)
             cursor = conn.cursor()
@@ -191,8 +189,8 @@ class MongoDBInitializer(DatabaseInitializerInterface):
             "host": db_params.get("host", "localhost"),
             "port": db_params.get("port", "27017"),
         }
-        self.db_name = db_params.get("dbname", "task_management")
-        self.container_name = "mongodb_container"
+        self.db_name = db_params.get("dbname", "cats_db")
+        self.container_name = "my_mongodb_container"
         self.container_port = 27017
 
     def start_container(self) -> bool:
@@ -201,18 +199,14 @@ class MongoDBInitializer(DatabaseInitializerInterface):
         try:
             container = client.containers.get(self.container_name)
             if container.status != "running":
-                print(
-                    "MongoDB container exists but is not running. Starting container..."
-                )
+                print("MongoDB container exists but is not running. Starting container...")
                 container.start()
             else:
-                print("MongoDB container is already running.")
+                # print("MongoDB container is already running.")
                 container.reload()
                 return container.status == "running"
         except docker.errors.NotFound:
-            print(
-                "MongoDB container not found. Creating and starting a new container..."
-            )
+            print("MongoDB container not found. Creating and starting a new container...")
             container = client.containers.run(
                 "mongo:latest",
                 detach=True,
@@ -253,31 +247,44 @@ class MongoDBInitializer(DatabaseInitializerInterface):
                 f"mongodb://{self.initial_params['host']}:{self.initial_params['port']}/"
             )
             db = client[self.db_name]
-            # In MongoDB, the database is created automatically upon first access
             db.create_collection("test_collection")
             print(f"MongoDB database '{self.db_name}' created successfully.")
         except Exception as e:
             print(f"An error occurred while creating the MongoDB database: {e}")
 
     def execute_script(self, script_path: str) -> None:
+        if not script_path:
+            print("No script path provided. Skipping script execution.")
+            return
+
         try:
             with open(script_path, "r") as file:
-                commands = file.read().strip().split(";")
+                data = json.load(file)
+
+            if isinstance(data, dict):
+                data = [data]
 
             client = MongoClient(
                 f"mongodb://{self.initial_params['host']}:{self.initial_params['port']}/"
             )
-            db = client[self.db_name]
 
-            for command in commands:
-                if command.strip():
-                    # Execute MongoDB commands
-                    # Note: this is a simplified implementation, real one may require command parsing
-                    eval(command)
+            if isinstance(data, list):
+                try:
+                    for doc in data:
+                        if "_id" not in doc:
+                            doc["_id"] = ObjectId()
+                        else:
+                            doc["_id"] = ObjectId(doc["_id"])
+                    client[self.db_name]["test_collection"].insert_many(data, ordered=False)
+                    print("MongoDB script executed successfully.")
+                except Exception as e:
+                    print(f"An error occurred while inserting documents: {e}")
+            else:
+                print("Unknown data format. Skipping import.")
 
-            print("MongoDB script executed successfully.")
         except Exception as e:
             print(f"An error occurred while executing the MongoDB script: {e}")
+            return
 
     def stop_container(self, remove: bool = False) -> None:
         client = docker.from_env()
@@ -341,16 +348,15 @@ class DatabaseManager:
 
 
 def main():
-    # Example usage
-    db_params = {
+    db_params_pg = {
         "user": "postgres",
         "password": "mysecretpassword",
         "host": "localhost",
         "port": "5432",
         "dbname": "task_management",
     }
+    db_params_mn = {"host": "localhost", "port": "27017", "dbname": "cats_db"}
 
-    # Choose database type
     print("Available database types:")
     for db_type in DatabaseType:
         print(f"- {db_type.value}")
@@ -363,15 +369,14 @@ def main():
         return
 
     script_path = (
-        "task_management_backup.sql"
-        if db_type == DatabaseType.POSTGRESQL
-        else "cats_script.js"
+        input("Enter the path to the script file (leave empty for no script): ").strip()
     )
+
+    db_params = db_params_pg if db_type == DatabaseType.POSTGRESQL else db_params_mn
 
     if DatabaseManager.initialize_database(db_type, db_params, script_path):
         print("Database initialization complete.")
 
-        # Optionally stop the container
         response = (
             input("Do you want to stop the container? (yes/no): ").strip().lower()
         )
