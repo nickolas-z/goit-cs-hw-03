@@ -1,6 +1,14 @@
-from DatabaseInitializer import DatabaseInitializer
-from DatabaseInitializer import DB_PARAMS
+from DatabaseManager import DatabaseManager
+from DatabaseManager import DatabaseType
 from TaskManager import TaskManager
+
+DB_PARAMS = {
+    "user": "postgres",
+    "password": "mysecretpassword",
+    "host": "localhost",
+    "port": "5432",
+    "dbname": "task_management",
+}
 
 def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
     """
@@ -10,7 +18,7 @@ def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
     return:
         None
     """
-    
+
     try:
         print("\nStarting TaskManager demonstration...")
         tm = TaskManager(db_params)
@@ -56,6 +64,10 @@ def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
 
         # 8. Finding users by email domain
         print("\n8. Finding users by email domain:")
+        if user_ids:
+            print("\nUpdating email for first user to 'new_email@gmail.com':")
+            success = tm.update_user_email(user_ids[0], "new_email@gmail.com")
+            print(f"Email update {'successful' if success else 'failed'}")
         users = tm.find_users_by_email("gmail.com")
         print(f"Found {len(users)} users with gmail.com")
 
@@ -86,12 +98,22 @@ def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
         user_counts = tm.get_user_task_counts()
         for user in user_counts:
             print(f"- {user['fullname']}: {user['task_count']} tasks")
-        
+
         # 14. Delete a specific task
         if new_tasks:
             print("\n14. Deleting first 'new' task:")
             success = tm.delete_task(new_tasks[0]["id"])
             print(f"Task deletion {'successful' if success else 'failed'}")
+
+        # 15. Delete a specific user with cascade deletion
+        if user_ids:
+            print("\n15. Deleting first user with cascade deletion:")
+            user_info = tm.get_user_info(user_ids[0])
+            print(f"User info before deletion: {user_info}")
+            success = tm.delete_user(user_ids[0])
+            print(f"User deletion {'successful' if success else 'failed'}")
+            # user_info = tm.get_user_info(user_ids[0])
+            # print(f"User info after deletion: {user_info}")
 
         print("\nDemonstration completed successfully!")
 
@@ -102,8 +124,20 @@ def demonstrate_all_functions(db_params: dict = DB_PARAMS)-> None:
             del tm
 
 if __name__ == "__main__":
-    if DatabaseInitializer.initialize_database("task_management_backup.sql"):
+    if DatabaseManager.initialize_database(DatabaseType.POSTGRESQL, DB_PARAMS, "task_management_backup.sql"):
         print("Database initialization complete.")
         demonstrate_all_functions()
-        # DatabaseInitializer.stop_postgres_container(remove=True)
+        # Optionally stop the container
+        response = (
+            input("Do you want to stop the container? (yes/no): ").strip().lower()
+        )
+        if response == "yes":
+            remove = (
+                input("Do you want to remove the container? (yes/no): ").strip().lower()
+                == "yes"
+            )
+            initializer = DatabaseManager.get_initializer(
+                DatabaseType.POSTGRESQL, DB_PARAMS
+            )
+            initializer.stop_container(remove)
 

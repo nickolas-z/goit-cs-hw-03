@@ -42,7 +42,29 @@ class TaskManager:
             user_ids.append(self.cursor.fetchone()[0])
         self.conn.commit()
         return user_ids
-
+    
+    def get_user_info(self, user_id: int) -> Dict[str, Any]:
+        """
+        Get user information by user ID
+        params:
+            user_id: User ID
+        return:
+            Dictionary with user information
+        """
+        self.cursor.execute(
+            """
+            SELECT *
+            FROM users
+            WHERE id = %s
+        """,
+            (user_id,),
+        )
+        result = self.cursor.fetchone()
+        if result:
+            columns = [desc[0] for desc in self.cursor.description]
+            return dict(zip(columns, result))
+        return {}
+    
     def create_tasks(self, user_ids: List[int], num_tasks: int = 30) -> None:
         """
         Create fake tasks for users
@@ -186,6 +208,22 @@ class TaskManager:
         )
         return self._fetch_all_as_dicts()
 
+    def delete_user(self, user_id: int) -> bool:
+        """
+        Delete specific user
+        params:
+            user_id: User ID
+        return:
+            bool: True if user was deleted successfully, False otherwise
+        """
+        try:
+            self.cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error deleting user: {e}")
+            return False
+
     def delete_task(self, task_id: int) -> bool:
         """
         Delete specific task
@@ -243,7 +281,31 @@ class TaskManager:
         except Exception as e:
             print(f"Error updating user name: {e}")
             return False
-
+    
+    def update_user_email(self, user_id: int, new_email: str) -> bool:
+        """
+        Update user's email
+        params:
+            user_id: User ID
+            new_email: New email
+        return:
+            bool: True if update was successful, False otherwise
+        """
+        try:
+            self.cursor.execute(
+                """
+                UPDATE users
+                SET email = %s
+                WHERE id = %s
+            """,
+                (new_email, user_id),
+            )
+            self.conn.commit()
+            return True
+        except Exception as e:
+            print(f"Error updating user email: {e}")
+            return False
+        
     def get_tasks_by_status_count(self) -> List[Dict[str, Any]]:
         """
         Count tasks by status

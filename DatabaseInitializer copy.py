@@ -3,6 +3,8 @@ import docker
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from typing import Dict, Any
+from enum import Enum
+from abc import ABC, abstractmethod
 
 INITIAL_DB_PARAMS = {
     "user": "postgres",
@@ -16,6 +18,38 @@ DB_PARAMS = {
     **INITIAL_DB_PARAMS,
     "dbname": "task_management"
 }
+
+
+class DatabaseType(Enum):
+    POSTGRESQL = "postgresql"
+    MONGODB = "mongodb"
+
+
+class DatabaseInitializerInterface(ABC):
+    @abstractmethod
+    def start_container(self) -> bool:
+        pass
+
+    @abstractmethod
+    def check_database_exists(self) -> bool:
+        pass
+
+    @abstractmethod
+    def drop_database(self) -> None:
+        pass
+
+    @abstractmethod
+    def create_database(self) -> None:
+        pass
+
+    @abstractmethod
+    def execute_script(self, script_path: str) -> None:
+        pass
+
+    @abstractmethod
+    def stop_container(self, remove: bool = False) -> None:
+        pass
+
 
 class DatabaseInitializer:
     @staticmethod
@@ -217,4 +251,3 @@ if __name__ == "__main__":
     if DatabaseInitializer.initialize_database("task_management_backup.sql"):
         print("Database initialization complete.")
         # DatabaseInitializer.stop_postgres_container(remove=True)
-
