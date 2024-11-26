@@ -1,5 +1,4 @@
-from DatabaseManager import DatabaseManager
-from DatabaseManager import DatabaseType
+from DatabaseManager import DatabaseManager, DatabaseType
 from TaskManager import TaskManager
 
 
