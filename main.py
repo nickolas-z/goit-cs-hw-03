@@ -64,6 +64,6 @@ if __name__ == "__main__":
                 == "yes"
             )
             initializer = DatabaseManager.get_initializer(
-                DatabaseType.POSTGRESQL, DB_PARAMS
+                DatabaseType.MONGODB, DB_PARAMS
             )
             initializer.stop_container(remove)

@@ -126,5 +126,5 @@
 ## Додатково
 - [Домашнє завдання до модуля "Вступ до вивчення систем управління базами даних"](https://www.edu.goit.global/uk/learn/25315460/19336208/21190537/homework)
 - [https://github.com/nickolas-z/goit-cs-hw-03](https://github.com/nickolas-z/goit-cs-hw-03)
-- [goit-cs-hw-02-main.zip](https://s3.eu-north-1.amazonaws.com/lms.goit.files/49370ccc-7a66-4b66-9d14-14d4a6948d7e%D0%94%D0%973_%D0%97%D1%83%D0%B1%D1%87%D0%B8%D0%BA%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B9%D0%BE%D0%B2%D0%B8%D1%87.zip)
+- [goit-cs-hw-03-main.zip](https://s3.eu-north-1.amazonaws.com/lms.goit.files/49370ccc-7a66-4b66-9d14-14d4a6948d7e%D0%94%D0%973_%D0%97%D1%83%D0%B1%D1%87%D0%B8%D0%BA%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%9C%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%D0%B9%D0%BE%D0%B2%D0%B8%D1%87.zip)
 - [Computer-Systems-and-Their-Fundamentals](https://github.com/nickolas-z/Computer-Systems-and-Their-Fundamentals)

@@ -44,14 +44,14 @@ class DatabaseInitializerInterface(ABC):
 class PostgresDatabaseInitializer(DatabaseInitializerInterface):
     def __init__(self, db_params: Dict[str, Any]) -> None:
         self.initial_params = {
-            "user": db_params.get("user", "postgres"),
-            "password": db_params.get("password", "mysecretpassword"),
-            "host": db_params.get("host", "localhost"),
-            "port": db_params.get("port", "5432"),
+            "user": db_params.get("user"),
+            "password": db_params.get("password"),
+            "host": db_params.get("host"),
+            "port": db_params.get("port"),
         }
         self.db_params = {
             **self.initial_params,
-            "dbname": db_params.get("dbname", "task_management"),
+            "dbname": db_params.get("dbname"),
         }
         self.container_name = "my_postgres_container"
         self.container_port = 5432
@@ -186,10 +186,10 @@ class PostgresDatabaseInitializer(DatabaseInitializerInterface):
 class MongoDBInitializer(DatabaseInitializerInterface):
     def __init__(self, db_params: Dict[str, Any]):
         self.initial_params = {
-            "host": db_params.get("host", "localhost"),
-            "port": db_params.get("port", "27017"),
+            "host": db_params.get("host"),
+            "port": db_params.get("port"),
         }
-        self.db_name = db_params.get("dbname", "cats_db")
+        self.db_name = db_params.get("dbname")
         self.container_name = "my_mongodb_container"
         self.container_port = 27017
 
